@@ -1,46 +1,107 @@
-# Getting Started with Create React App
+# MetroPass Admin - Trang Quản Trị Hệ Thống Vé Tàu Điện
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Đây là trang quản trị (Admin Dashboard) cho hệ thống MetroPass, được xây dựng bằng React, TypeScript và Material-UI. Giao diện được thiết kế để cung cấp một công cụ mạnh mẽ và trực quan cho các quản trị viên để giám sát và quản lý toàn bộ hoạt động của hệ thống.
 
-## Available Scripts
+## ✨ Tính năng nổi bật
 
-In the project directory, you can run:
+- **Bảng điều khiển (Dashboard)**: Cung cấp cái nhìn tổng quan về các số liệu quan trọng như doanh thu, số lượng vé bán ra, và các hoạt động gần đây.
+- **Quản lý Người dùng**: Xem danh sách, tìm kiếm, tạo mới, chỉnh sửa và xóa thông tin người dùng trong hệ thống.
+- **Quản lý Loại vé**: Dễ dàng cấu hình các loại vé (ví dụ: vé lượt, vé tháng, vé sinh viên) với các mức giá và thời hạn khác nhau.
+- **Quản lý Vé của người dùng**: Theo dõi trạng thái của tất cả các vé đã được người dùng mua (chưa sử dụng, đang hoạt động, đã hết hạn).
+- **Quản lý Nhà ga**: Cập nhật thông tin chi tiết về các nhà ga trong tuyến tàu.
+- **Thống kê & Báo cáo**: Các biểu đồ và bảng số liệu giúp phân tích doanh thu và xu hướng sử dụng vé.
+- **Thiết kế Responsive**: Giao diện được tối ưu hóa để hoạt động tốt trên cả máy tính để bàn và các thiết bị di động.
 
-### `npm start`
+## 🚀 Công nghệ sử dụng
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- **Frontend**: React (v19+), TypeScript
+- **UI Framework**: Material-UI (MUI)
+- **Backend & Database**: Firebase (Firestore, Authentication)
+- **Routing**: React Router DOM
+- **Quản lý State**: React Context API
+- **Form Management**: Formik & Yup (dự kiến hoặc có thể tích hợp)
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## 🔧 Hướng dẫn cài đặt và khởi chạy
 
-### `npm test`
+Để chạy dự án này trên máy của bạn, hãy làm theo các bước sau:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+**1. Clone Repository**
 
-### `npm run build`
+```bash
+git clone https://github.com/LTMB-Metro/AdminMetro.git
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+**2. Di chuyển vào thư mục dự án**
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+cd AdminMetro
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+**3. Cài đặt các dependencies**
+Sử dụng `npm` để cài đặt tất cả các gói cần thiết.
 
-### `npm run eject`
+```bash
+npm install
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+**4. Cấu hình Firebase**
+Tạo một file mới tại đường dẫn `src/config/firebase.ts` và thêm vào đó cấu hình Firebase của bạn.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+_Ví dụ file `firebase.ts`:_
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+```typescript
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID",
+};
 
-## Learn More
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+export { db, auth };
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+**5. Chạy ứng dụng**
+Sau khi cài đặt xong, chạy lệnh sau để khởi động ứng dụng ở chế độ development.
+
+```bash
+npm start
+```
+
+Mở [http://localhost:3000](http://localhost:3000) để xem ứng dụng trên trình duyệt.
+
+## 📂 Cấu trúc thư mục
+
+Dự án được tổ chức theo cấu trúc module hóa để dễ dàng bảo trì và mở rộng:
+
+```
+src
+├── components/     # Các UI components tái sử dụng (Layout, Cards,...)
+├── contexts/       # React Context API cho quản lý state (e.g., AuthContext)
+├── models/         # Định nghĩa các interface TypeScript cho dữ liệu (User, Ticket,...)
+├── pages/          # Các trang chính của ứng dụng (Dashboard, Users, Stations,...)
+├── services/       # Logic giao tiếp với Firebase (CRUD operations)
+├── App.tsx         # Component gốc của ứng dụng
+└── index.tsx       # Điểm khởi đầu của ứng dụng React
+```
+
+## 👨‍💻 Tác giả
+
+- **Tên**: Phan Văn Huy
+- **Email**: <huy0812200415@gmail.com>
+- **GitHub**: [https://github.com/LTMB-Metro](https://github.com/LTMB-Metro)
+
+---
+
+Cảm ơn bạn đã quan tâm đến dự án!

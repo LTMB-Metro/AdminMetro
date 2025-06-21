@@ -1,0 +1,15 @@
+export const COLORS = {
+  white: "#FFFFFF",
+  black: "#000000",
+  pr1: "#EEFFF5",
+  pr2: "#E1FFEE",
+  pr3: "#D9F5EC",
+  pr4: "#96EFFF",
+  pr5: "#5FBDFF",
+  pr6: "#5A4BB6",
+  pr7: "#7FBCD2",
+  pr8: "#088395",
+  pr9: "#010A43",
+  grey: "#A19E9A",
+  red: "#D00043",
+} as const;
