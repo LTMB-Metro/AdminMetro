@@ -57,9 +57,7 @@ const getStatusColor = (status: UserTicket["status"]) => {
     case "active":
       return { bg: "#e3f2fd", text: "#1976d2", label: "Đang sử dụng" };
     case "expired":
-      return { bg: "#ffebee", text: "#c62828", label: "Hết hạn" };
-    case "refunded":
-      return { bg: "#fff3e0", text: "#ef6c00", label: "Đã hoàn tiền" };
+      return { bg: "#ffebee", text: "#c62828", label: "Đã sử dụng" };
     default:
       return { bg: "#f5f5f5", text: "#616161", label: "Không xác định" };
   }
@@ -174,14 +172,14 @@ const UserTickets: React.FC = () => {
   };
 
   const handleUpdateTicketStatus = async (
-    id: string,
+    ticket: UserTicket,
     newStatus: UserTicket["status"]
   ) => {
     try {
-      await updateUserTicket(id, { status: newStatus });
+      await updateUserTicket(ticket, { status: newStatus });
       await loadUserTickets();
 
-      if (editingTicket && editingTicket.id === id) {
+      if (editingTicket && editingTicket.id === ticket.id) {
         setEditingTicket({
           ...editingTicket,
           status: newStatus,
@@ -193,8 +191,7 @@ const UserTickets: React.FC = () => {
     }
   };
 
-  const handleDeleteTicket = (id: string) => {
-    const ticket = userTickets.find((t) => t.id === id) || null;
+  const handleDeleteTicket = (ticket: UserTicket) => {
     setTicketToDelete(ticket);
     setDeleteDialogOpen(true);
   };
@@ -202,7 +199,7 @@ const UserTickets: React.FC = () => {
   const confirmDeleteTicket = async () => {
     if (!ticketToDelete) return;
     try {
-      await deleteUserTicket(ticketToDelete.id);
+      await deleteUserTicket(ticketToDelete);
       setSuccessMessage("Xóa vé thành công!");
       await loadUserTickets();
     } catch (err) {
@@ -357,8 +354,7 @@ const UserTickets: React.FC = () => {
               <MenuItem value="all">Tất cả</MenuItem>
               <MenuItem value="unused">Chưa sử dụng</MenuItem>
               <MenuItem value="active">Đang sử dụng</MenuItem>
-              <MenuItem value="expired">Hết hạn</MenuItem>
-              <MenuItem value="refunded">Đã hoàn tiền</MenuItem>
+              <MenuItem value="expired">Đã sử dụng</MenuItem>
             </Select>
           </FormControl>
         </Box>
@@ -548,6 +544,8 @@ const UserTickets: React.FC = () => {
                           backgroundColor: statusColors.bg,
                           color: statusColors.text,
                           fontWeight: "medium",
+                          cursor: "default",
+                          pointerEvents: "none",
                         }}
                       />
                     </TableCell>
@@ -563,7 +561,7 @@ const UserTickets: React.FC = () => {
                       </Tooltip>
                       {ticket.qr_code_content && (
                         <Tooltip title="Xem QR Code">
-                          <IconButton size="small" sx={{ mr: 1 }}>
+                          <IconButton size="small" sx={{ mr: 1 }} disabled>
                             <QrCodeIcon />
                           </IconButton>
                         </Tooltip>
@@ -571,7 +569,7 @@ const UserTickets: React.FC = () => {
                       <Tooltip title="Xóa vé">
                         <IconButton
                           size="small"
-                          onClick={() => handleDeleteTicket(ticket.id)}
+                          onClick={() => handleDeleteTicket(ticket)}
                           color="error"
                         >
                           <DeleteIcon />
@@ -701,7 +699,7 @@ const UserTickets: React.FC = () => {
                   Cập Nhật Trạng Thái
                 </Typography>
                 <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                  {["unused", "used", "expired", "refunded"].map((status) => (
+                  {["unused", "active", "expired"].map((status) => (
                     <Button
                       key={status}
                       variant={
@@ -712,7 +710,7 @@ const UserTickets: React.FC = () => {
                       size="small"
                       onClick={() =>
                         handleUpdateTicketStatus(
-                          editingTicket.id,
+                          editingTicket,
                           status as UserTicket["status"]
                         )
                       }

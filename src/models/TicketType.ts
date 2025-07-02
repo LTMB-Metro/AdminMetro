@@ -1,13 +1,13 @@
 export interface TicketType {
   id: string;
   ticket_name: string;
-  description: string;
-  price: number;
-  duration: number;
   type: string;
+  price: number;
   categories: string;
-  status: "active" | "inactive";
+  duration: number;
   note?: string;
+  description?: string;
+  status: "active" | "inactive";
   createdAt: any;
   updatedAt: any;
 }

@@ -28,6 +28,7 @@ import {
   ConfirmationNumber as TicketIcon,
   Receipt as ReceiptIcon,
   TrendingUp as TrendingUpIcon,
+  Settings as SettingsIcon,
   ChevronLeft as ChevronLeftIcon,
   Brightness4,
   Brightness7,
@@ -66,6 +67,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
     { text: "Loại Vé", icon: <TicketIcon />, path: "/ticket-types" },
     { text: "Vé Người Dùng", icon: <ReceiptIcon />, path: "/user-tickets" },
     { text: "Doanh Thu", icon: <TrendingUpIcon />, path: "/revenue" },
+    { text: "Cài Đặt Giá", icon: <SettingsIcon />, path: "/price-settings" },
   ];
 
   const handleDrawerToggle = () => {

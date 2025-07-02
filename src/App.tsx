@@ -15,6 +15,7 @@ import Stations from "./pages/Stations";
 import TicketTypes from "./pages/TicketTypes";
 import UserTickets from "./pages/UserTickets";
 import Revenue from "./pages/Revenue";
+import PriceSettings from "./pages/PriceSettings";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -62,6 +63,10 @@ function App() {
                         <Route path="/ticket-types" element={<TicketTypes />} />
                         <Route path="/user-tickets" element={<UserTickets />} />
                         <Route path="/revenue" element={<Revenue />} />
+                        <Route
+                          path="/price-settings"
+                          element={<PriceSettings />}
+                        />
                       </Routes>
                     </AdminLayout>
                   </ProtectedRoute>

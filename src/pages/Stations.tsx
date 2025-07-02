@@ -333,6 +333,8 @@ const Stations: React.FC = () => {
                           backgroundColor: typeColors.bg,
                           color: typeColors.text,
                           fontWeight: "medium",
+                          cursor: "default",
+                          pointerEvents: "none",
                         }}
                       />
                     </TableCell>
@@ -345,6 +347,8 @@ const Stations: React.FC = () => {
                           backgroundColor: statusColors.bg,
                           color: statusColors.text,
                           fontWeight: "medium",
+                          cursor: "default",
+                          pointerEvents: "none",
                         }}
                       />
                     </TableCell>

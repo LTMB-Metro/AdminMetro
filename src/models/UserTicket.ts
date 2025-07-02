@@ -3,7 +3,7 @@ export interface UserTicket {
   user_id: string;
   ticket_name: string;
   ticket_type: string;
-  status: "unused" | "active" | "expired" | "refunded" | "available";
+  status: "unused" | "active" | "expired";
   activate_time?: any;
   auto_activate_time?: any;
   booking_time: any;
@@ -18,4 +18,7 @@ export interface UserTicket {
   start_station_code?: string;
   createdAt?: any;
   updatedAt?: any;
+  user_name?: string;
+  user_email?: string;
+  _documentPath?: string;
 }

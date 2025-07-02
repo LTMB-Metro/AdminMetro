@@ -12,7 +12,13 @@ import {
 import { db } from "../config/firebase";
 import { User } from "../models/User";
 import { Activity } from "../types/activity";
-import { getRevenueStats, getRevenueStatsByDate } from "./userTicketService";
+import {
+  getRevenueStats,
+  getRevenueStatsByDate,
+  getRevenueStatsByWeek,
+  getRevenueStatsByMonth,
+  getRevenueStatsByDateRange,
+} from "./userTicketService";
 
 export interface DashboardStats {
   totalUsers: number;
@@ -73,19 +79,18 @@ export const getChartData = async (
     // Status chart data with Vietnamese labels
     const statusLabels: Record<string, string> = {
       unused: "Chưa sử dụng",
-      used: "Đã sử dụng",
+      active: "Đang sử dụng",
       expired: "Hết hạn",
-      refunded: "Đã hoàn tiền",
     };
 
-    const statusColors = ["#4caf50", "#2196f3", "#ff9800", "#f44336"];
+    const statusColors = ["#4caf50", "#2196f3", "#f44336"];
 
+    // Chỉ lấy các trạng thái unused, active, expired
+    const filteredStatusKeys = ["unused", "active", "expired"];
     const statusChart = {
-      labels: Object.keys(stats.ticketsByStatus).map(
-        (key) => statusLabels[key] || key
-      ),
-      data: Object.values(stats.ticketsByStatus),
-      colors: statusColors.slice(0, Object.keys(stats.ticketsByStatus).length),
+      labels: filteredStatusKeys.map((key) => statusLabels[key]),
+      data: filteredStatusKeys.map((key) => stats.ticketsByStatus[key] || 0),
+      colors: statusColors,
     };
 
     // Type chart data with Vietnamese ticket names
@@ -93,6 +98,7 @@ export const getChartData = async (
       daily1: "Vé 1 Ngày",
       daily3: "Vé 3 Ngày",
       monthly: "Vé Tháng",
+      single: "Vé lượt",
       student: "Vé HSSV",
       monthly_student: "Vé HSSV",
     };
@@ -123,6 +129,200 @@ export const getChartData = async (
   } catch (error) {
     console.error("Error generating chart data:", error);
     // Fallback to empty charts if error
+    return {
+      statusChart: { labels: [], data: [], colors: [] },
+      typeChart: { labels: [], data: [], colors: [] },
+      revenueChart: { labels: [], data: [] },
+    };
+  }
+};
+
+export const getChartDataByWeek = async (
+  stats: DashboardStats
+): Promise<ChartData> => {
+  try {
+    // Status chart data with Vietnamese labels
+    const statusLabels: Record<string, string> = {
+      unused: "Chưa sử dụng",
+      active: "Đang sử dụng",
+      expired: "Hết hạn",
+    };
+
+    const statusColors = ["#4caf50", "#2196f3", "#f44336"];
+
+    // Chỉ lấy các trạng thái unused, active, expired
+    const filteredStatusKeys = ["unused", "active", "expired"];
+    const statusChart = {
+      labels: filteredStatusKeys.map((key) => statusLabels[key]),
+      data: filteredStatusKeys.map((key) => stats.ticketsByStatus[key] || 0),
+      colors: statusColors,
+    };
+
+    // Type chart data with Vietnamese ticket names
+    const typeLabels: Record<string, string> = {
+      daily1: "Vé 1 Ngày",
+      daily3: "Vé 3 Ngày",
+      monthly: "Vé Tháng",
+      single: "Vé lượt",
+      student: "Vé HSSV",
+      monthly_student: "Vé HSSV",
+    };
+
+    const typeColors = ["#9c27b0", "#00bcd4", "#cddc39", "#ff5722", "#607d8b"];
+
+    const typeChart = {
+      labels: Object.keys(stats.ticketsByType).map(
+        (key) => typeLabels[key] || key
+      ),
+      data: Object.values(stats.ticketsByType),
+      colors: typeColors.slice(0, Object.keys(stats.ticketsByType).length),
+    };
+
+    // Get revenue data for current week
+    const revenueData = await getRevenueStatsByWeek();
+
+    const revenueChart = {
+      labels: revenueData.chartData.map((item) => item.label),
+      data: revenueData.chartData.map((item) => item.revenue),
+    };
+
+    return {
+      statusChart,
+      typeChart,
+      revenueChart,
+    };
+  } catch (error) {
+    console.error("Error generating chart data by week:", error);
+    return {
+      statusChart: { labels: [], data: [], colors: [] },
+      typeChart: { labels: [], data: [], colors: [] },
+      revenueChart: { labels: [], data: [] },
+    };
+  }
+};
+
+export const getChartDataByMonth = async (
+  stats: DashboardStats
+): Promise<ChartData> => {
+  try {
+    // Status chart data with Vietnamese labels
+    const statusLabels: Record<string, string> = {
+      unused: "Chưa sử dụng",
+      active: "Đang sử dụng",
+      expired: "Hết hạn",
+    };
+
+    const statusColors = ["#4caf50", "#2196f3", "#f44336"];
+
+    // Chỉ lấy các trạng thái unused, active, expired
+    const filteredStatusKeys = ["unused", "active", "expired"];
+    const statusChart = {
+      labels: filteredStatusKeys.map((key) => statusLabels[key]),
+      data: filteredStatusKeys.map((key) => stats.ticketsByStatus[key] || 0),
+      colors: statusColors,
+    };
+
+    // Type chart data with Vietnamese ticket names
+    const typeLabels: Record<string, string> = {
+      daily1: "Vé 1 Ngày",
+      daily3: "Vé 3 Ngày",
+      monthly: "Vé Tháng",
+      single: "Vé lượt",
+      student: "Vé HSSV",
+      monthly_student: "Vé HSSV",
+    };
+
+    const typeColors = ["#9c27b0", "#00bcd4", "#cddc39", "#ff5722", "#607d8b"];
+
+    const typeChart = {
+      labels: Object.keys(stats.ticketsByType).map(
+        (key) => typeLabels[key] || key
+      ),
+      data: Object.values(stats.ticketsByType),
+      colors: typeColors.slice(0, Object.keys(stats.ticketsByType).length),
+    };
+
+    // Get revenue data for current month
+    const revenueData = await getRevenueStatsByMonth();
+
+    const revenueChart = {
+      labels: revenueData.chartData.map((item) => item.label),
+      data: revenueData.chartData.map((item) => item.revenue),
+    };
+
+    return {
+      statusChart,
+      typeChart,
+      revenueChart,
+    };
+  } catch (error) {
+    console.error("Error generating chart data by month:", error);
+    return {
+      statusChart: { labels: [], data: [], colors: [] },
+      typeChart: { labels: [], data: [], colors: [] },
+      revenueChart: { labels: [], data: [] },
+    };
+  }
+};
+
+export const getChartDataByDateRange = async (
+  stats: DashboardStats,
+  startDate: Date,
+  endDate: Date
+): Promise<ChartData> => {
+  try {
+    // Status chart data with Vietnamese labels
+    const statusLabels: Record<string, string> = {
+      unused: "Chưa sử dụng",
+      active: "Đang sử dụng",
+      expired: "Hết hạn",
+    };
+
+    const statusColors = ["#4caf50", "#2196f3", "#f44336"];
+
+    // Chỉ lấy các trạng thái unused, active, expired
+    const filteredStatusKeys = ["unused", "active", "expired"];
+    const statusChart = {
+      labels: filteredStatusKeys.map((key) => statusLabels[key]),
+      data: filteredStatusKeys.map((key) => stats.ticketsByStatus[key] || 0),
+      colors: statusColors,
+    };
+
+    // Type chart data with Vietnamese ticket names
+    const typeLabels: Record<string, string> = {
+      daily1: "Vé 1 Ngày",
+      daily3: "Vé 3 Ngày",
+      monthly: "Vé Tháng",
+      single: "Vé lượt",
+      student: "Vé HSSV",
+      monthly_student: "Vé HSSV",
+    };
+
+    const typeColors = ["#9c27b0", "#00bcd4", "#cddc39", "#ff5722", "#607d8b"];
+
+    const typeChart = {
+      labels: Object.keys(stats.ticketsByType).map(
+        (key) => typeLabels[key] || key
+      ),
+      data: Object.values(stats.ticketsByType),
+      colors: typeColors.slice(0, Object.keys(stats.ticketsByType).length),
+    };
+
+    // Get revenue data for custom date range
+    const revenueData = await getRevenueStatsByDateRange(startDate, endDate);
+
+    const revenueChart = {
+      labels: revenueData.chartData.map((item) => item.label),
+      data: revenueData.chartData.map((item) => item.revenue),
+    };
+
+    return {
+      statusChart,
+      typeChart,
+      revenueChart,
+    };
+  } catch (error) {
+    console.error("Error generating chart data by date range:", error);
     return {
       statusChart: { labels: [], data: [], colors: [] },
       typeChart: { labels: [], data: [], colors: [] },

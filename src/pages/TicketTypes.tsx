@@ -325,6 +325,8 @@ const TicketTypes: React.FC = () => {
                           backgroundColor: typeColors.bg,
                           color: typeColors.text,
                           fontWeight: "medium",
+                          cursor: "default",
+                          pointerEvents: "none",
                         }}
                       />
                     </TableCell>
@@ -336,6 +338,8 @@ const TicketTypes: React.FC = () => {
                           backgroundColor: categoryColors.bg,
                           color: categoryColors.text,
                           fontWeight: "medium",
+                          cursor: "default",
+                          pointerEvents: "none",
                         }}
                       />
                     </TableCell>
@@ -359,6 +363,8 @@ const TicketTypes: React.FC = () => {
                           color:
                             ticket.status === "active" ? "#2e7d32" : "#c62828",
                           fontWeight: "medium",
+                          cursor: "default",
+                          pointerEvents: "none",
                         }}
                       />
                     </TableCell>

@@ -15,6 +15,11 @@ import {
   IconButton,
   Skeleton,
   Stack,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
 } from "@mui/material";
 import {
   People as PeopleIcon,
@@ -32,6 +37,9 @@ import {
   fetchDashboardStats,
   DashboardStats,
   getChartData,
+  getChartDataByWeek,
+  getChartDataByMonth,
+  getChartDataByDateRange,
   ChartData,
   fetchRecentActivities,
 } from "../services/dashboard";
@@ -273,12 +281,121 @@ const Dashboard = () => {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
+  const [revenueFilter, setRevenueFilter] = useState<string>("7days");
+  const [customStartDate, setCustomStartDate] = useState<string>("");
+  const [customEndDate, setCustomEndDate] = useState<string>("");
+  const [dateRangeError, setDateRangeError] = useState<string>("");
 
   const stats = getStatsConfig(dashboardStats);
+
+  // Validate custom date range
+  const validateDateRange = (startDate: string, endDate: string) => {
+    if (!startDate || !endDate) {
+      setDateRangeError("");
+      return true;
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Check if start date is after end date
+    if (start > end) {
+      setDateRangeError("Ngày bắt đầu phải trước ngày kết thúc");
+      return false;
+    }
+
+    // Check if date range is too long (max 31 days)
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 để bao gồm cả ngày bắt đầu và kết thúc
+
+    if (diffDays > 31) {
+      setDateRangeError(
+        `Khoảng thời gian quá dài (${diffDays} ngày). Tối đa 31 ngày.`
+      );
+      return false;
+    }
+
+    // Check if date range is in the future
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    if (start > today) {
+      setDateRangeError("Không thể chọn ngày trong tương lai");
+      return false;
+    }
+
+    setDateRangeError("");
+    return true;
+  };
+
+  const handleCustomStartDateChange = (date: string) => {
+    setCustomStartDate(date);
+
+    // Tự động điều chỉnh ngày kết thúc nếu khoảng cách > 31 ngày
+    if (customEndDate && date) {
+      const start = new Date(date);
+      const end = new Date(customEndDate);
+      const diffTime = Math.abs(end.getTime() - start.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+      if (diffDays > 31) {
+        // Tự động set ngày kết thúc = ngày bắt đầu + 30 ngày
+        const maxEndDate = new Date(start);
+        maxEndDate.setDate(start.getDate() + 30);
+        const maxEndDateStr = maxEndDate.toISOString().split("T")[0];
+        setCustomEndDate(maxEndDateStr);
+        setDateRangeError(
+          "Đã tự động điều chỉnh ngày kết thúc để không vượt quá 31 ngày"
+        );
+        return;
+      }
+    }
+
+    if (customEndDate) {
+      validateDateRange(date, customEndDate);
+    }
+  };
+
+  const handleCustomEndDateChange = (date: string) => {
+    if (customStartDate && date) {
+      const start = new Date(customStartDate);
+      const end = new Date(date);
+      const diffTime = Math.abs(end.getTime() - start.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+      if (diffDays > 31) {
+        setDateRangeError(
+          `Khoảng thời gian quá dài (${diffDays} ngày). Tối đa 31 ngày.`
+        );
+        return; // Không set ngày kết thúc nếu vượt quá 31 ngày
+      }
+    }
+
+    setCustomEndDate(date);
+    if (customStartDate) {
+      validateDateRange(customStartDate, date);
+    }
+  };
 
   useEffect(() => {
     loadDashboardStats();
   }, []);
+
+  useEffect(() => {
+    if (dashboardStats) {
+      // Only load chart data if date range is valid (for custom filter)
+      if (revenueFilter === "custom") {
+        if (
+          customStartDate &&
+          customEndDate &&
+          validateDateRange(customStartDate, customEndDate)
+        ) {
+          loadChartData();
+        }
+      } else {
+        loadChartData();
+      }
+    }
+  }, [revenueFilter, customStartDate, customEndDate, dashboardStats]);
 
   const loadDashboardStats = async () => {
     try {
@@ -286,8 +403,6 @@ const Dashboard = () => {
       setError(null);
       const stats = await fetchDashboardStats();
       setDashboardStats(stats);
-      const charts = await getChartData(stats);
-      setChartData(charts);
       setLastUpdated(new Date());
       const activities = await fetchRecentActivities();
       setRecentActivities(activities);
@@ -296,6 +411,70 @@ const Dashboard = () => {
       console.error("Error loading dashboard stats:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadChartData = async () => {
+    if (!dashboardStats) return;
+
+    try {
+      let charts: ChartData;
+
+      console.log("Loading chart data for filter:", revenueFilter);
+
+      switch (revenueFilter) {
+        case "week":
+          console.log("Loading week data...");
+          charts = await getChartDataByWeek(dashboardStats);
+          console.log("Week charts data:", charts);
+          break;
+        case "month":
+          console.log("Loading month data...");
+          charts = await getChartDataByMonth(dashboardStats);
+          console.log("Month charts data:", charts);
+          break;
+        case "custom":
+          if (customStartDate && customEndDate) {
+            console.log(
+              "Loading custom range:",
+              customStartDate,
+              "to",
+              customEndDate
+            );
+            const startDate = new Date(customStartDate);
+            const endDate = new Date(customEndDate);
+            charts = await getChartDataByDateRange(
+              dashboardStats,
+              startDate,
+              endDate
+            );
+            console.log("Custom charts data:", charts);
+          } else {
+            charts = await getChartData(dashboardStats);
+          }
+          break;
+        default:
+          console.log("Loading default 7 days data...");
+          charts = await getChartData(dashboardStats);
+          console.log("Default charts data:", charts);
+      }
+
+      setChartData(charts);
+    } catch (err) {
+      console.error("Error loading chart data:", err);
+    }
+  };
+
+  const getRevenueChartTitle = () => {
+    switch (revenueFilter) {
+      case "week":
+        return "Doanh Thu Tuần Này";
+      case "month":
+        return "Doanh Thu Tháng Này";
+      case "custom":
+        return "Doanh Thu Theo Khoảng Ngày";
+      default:
+        return "Doanh Thu 7 Ngày Qua";
     }
   };
 
@@ -600,9 +779,95 @@ const Dashboard = () => {
                     <PieChart data={chartData.typeChart} title="Loại Vé" />
                   </Box>
                   <Divider sx={{ my: 2 }} />
+
+                  {/* Revenue Filter Controls */}
+                  <Box sx={{ mb: 3 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        gap: 2,
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <FormControl size="small" sx={{ minWidth: 160 }}>
+                        <InputLabel>Lọc doanh thu</InputLabel>
+                        <Select
+                          value={revenueFilter}
+                          label="Lọc doanh thu"
+                          onChange={(e) => setRevenueFilter(e.target.value)}
+                        >
+                          <MenuItem value="7days">7 ngày gần nhất</MenuItem>
+                          <MenuItem value="week">Tuần này</MenuItem>
+                          <MenuItem value="month">Tháng này</MenuItem>
+                          <MenuItem value="custom">Tùy chọn ngày</MenuItem>
+                        </Select>
+                      </FormControl>
+
+                      {revenueFilter === "custom" && (
+                        <>
+                          <TextField
+                            type="date"
+                            label="Từ ngày"
+                            size="small"
+                            value={customStartDate}
+                            onChange={(e) =>
+                              handleCustomStartDateChange(e.target.value)
+                            }
+                            InputLabelProps={{
+                              shrink: true,
+                            }}
+                            error={!!dateRangeError}
+                            inputProps={{
+                              max: new Date().toISOString().split("T")[0], // Không cho chọn ngày tương lai
+                            }}
+                          />
+                          <TextField
+                            type="date"
+                            label="Đến ngày"
+                            size="small"
+                            value={customEndDate}
+                            onChange={(e) =>
+                              handleCustomEndDateChange(e.target.value)
+                            }
+                            InputLabelProps={{
+                              shrink: true,
+                            }}
+                            error={!!dateRangeError}
+                            inputProps={{
+                              max: customStartDate
+                                ? (() => {
+                                    const maxDate = new Date(customStartDate);
+                                    maxDate.setDate(maxDate.getDate() + 30);
+                                    const today = new Date()
+                                      .toISOString()
+                                      .split("T")[0];
+                                    const maxDateStr = maxDate
+                                      .toISOString()
+                                      .split("T")[0];
+                                    return maxDateStr > today
+                                      ? today
+                                      : maxDateStr;
+                                  })()
+                                : new Date().toISOString().split("T")[0],
+                              min: customStartDate, // Không cho chọn ngày trước ngày bắt đầu
+                            }}
+                          />
+                        </>
+                      )}
+                    </Box>
+
+                    {/* Error message for date range */}
+                    {dateRangeError && (
+                      <Alert severity="warning" sx={{ mt: 1 }}>
+                        {dateRangeError}
+                      </Alert>
+                    )}
+                  </Box>
+
                   <BarChart
                     data={chartData.revenueChart}
-                    title="Doanh Thu 7 Ngày Qua"
+                    title={getRevenueChartTitle()}
                   />
                 </Box>
               ) : (
@@ -712,19 +977,42 @@ const Dashboard = () => {
                         flex: 1,
                         display: "flex",
                         justifyContent: "space-between",
-                        alignItems: "center",
+                        flexDirection: "column",
+                        alignItems: "flex-end",
                       }}
                     >
-                      <Typography variant="body2" fontWeight={500}>
+                      <Typography
+                        variant="body2"
+                        fontWeight={500}
+                        sx={{ alignSelf: "flex-start" }}
+                      >
                         {activity.desc}
                       </Typography>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ ml: 2 }}
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "flex-end",
+                        }}
                       >
-                        {activity.time}
-                      </Typography>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ ml: 2 }}
+                        >
+                          {activity.time}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          color="text.disabled"
+                          sx={{ ml: 2, fontSize: "0.75em", mt: "-2px" }}
+                        >
+                          {activity.timestamp &&
+                            new Date(activity.timestamp).toLocaleDateString(
+                              "vi-VN"
+                            )}
+                        </Typography>
+                      </Box>
                     </Box>
                   </Box>
                 ))}

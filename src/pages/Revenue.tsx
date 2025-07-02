@@ -53,7 +53,8 @@ const getStatsConfig = (revenueStats: RevenueStats | null) => [
   },
   {
     label: "Vé Đã Sử Dụng",
-    value: revenueStats?.ticketsByStatus?.used?.toLocaleString("vi-VN") || "0",
+    value:
+      revenueStats?.ticketsByStatus?.expired?.toLocaleString("vi-VN") || "0",
     icon: <TrendingUpIcon />,
     color: "#ff9800",
     bg: "linear-gradient(135deg,#ff9800 30%,#ffb74d 100%)",
@@ -72,12 +73,10 @@ const getStatusLabel = (status: string) => {
   switch (status) {
     case "unused":
       return "Chưa sử dụng";
-    case "used":
-      return "Đã sử dụng";
+    case "active":
+      return "Đang sử dụng";
     case "expired":
-      return "Hết hạn";
-    case "refunded":
-      return "Đã hoàn tiền";
+      return "Đã sử dụng";
     default:
       return status;
   }
@@ -421,8 +420,11 @@ const Revenue: React.FC = () => {
           {revenueStats?.ticketsByStatus &&
           Object.keys(revenueStats.ticketsByStatus).length > 0 ? (
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              {Object.entries(revenueStats.ticketsByStatus).map(
-                ([status, count]) => {
+              {Object.entries(revenueStats.ticketsByStatus)
+                .filter(([status]) =>
+                  ["unused", "active", "expired"].includes(status)
+                )
+                .map(([status, count]) => {
                   const percentage =
                     revenueStats.totalTicketsSold > 0
                       ? ((count / revenueStats.totalTicketsSold) * 100).toFixed(
@@ -464,9 +466,9 @@ const Revenue: React.FC = () => {
                           sx={{
                             height: "100%",
                             backgroundColor:
-                              status === "used"
+                              status === "unused"
                                 ? "#4caf50"
-                                : status === "unused"
+                                : status === "active"
                                 ? "#2196f3"
                                 : status === "expired"
                                 ? "#f44336"
@@ -478,8 +480,7 @@ const Revenue: React.FC = () => {
                       </Box>
                     </Box>
                   );
-                }
-              )}
+                })}
             </Box>
           ) : (
             <Box
@@ -623,7 +624,7 @@ const Revenue: React.FC = () => {
                   <strong>Tỷ lệ sử dụng vé:</strong>{" "}
                   {revenueStats.totalTicketsSold > 0
                     ? (
-                        ((revenueStats.ticketsByStatus.used || 0) /
+                        ((revenueStats.ticketsByStatus.expired || 0) /
                           revenueStats.totalTicketsSold) *
                         100
                       ).toFixed(1)
