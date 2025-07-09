@@ -452,9 +452,10 @@ const TicketTypes: React.FC = () => {
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    price: parseInt(e.target.value) || 0,
+                    price: Math.max(0, parseInt(e.target.value) || 0),
                   })
                 }
+                inputProps={{ min: 0 }}
                 required
               />
               <TextField
@@ -465,9 +466,10 @@ const TicketTypes: React.FC = () => {
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    duration: parseInt(e.target.value) || 0,
+                    duration: Math.max(0, parseInt(e.target.value) || 0),
                   })
                 }
+                inputProps={{ min: 0 }}
               />
             </Box>
             <Box sx={{ display: "flex", gap: 2 }}>

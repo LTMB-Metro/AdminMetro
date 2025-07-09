@@ -383,9 +383,10 @@ const PriceSettings: React.FC = () => {
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    original_grap: parseInt(e.target.value) || 0,
+                    original_grap: Math.max(0, parseInt(e.target.value) || 0),
                   })
                 }
+                inputProps={{ min: 0 }}
                 required
               />
               <TextField
@@ -396,9 +397,10 @@ const PriceSettings: React.FC = () => {
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    price: parseInt(e.target.value) || 0,
+                    price: Math.max(0, parseInt(e.target.value) || 0),
                   })
                 }
+                inputProps={{ min: 0 }}
                 required
               />
             </Box>
@@ -411,9 +413,13 @@ const PriceSettings: React.FC = () => {
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  extra_price_per_station: parseInt(e.target.value) || 0,
+                  extra_price_per_station: Math.max(
+                    0,
+                    parseInt(e.target.value) || 0
+                  ),
                 })
               }
+              inputProps={{ min: 0 }}
               required
             />
           </Stack>
